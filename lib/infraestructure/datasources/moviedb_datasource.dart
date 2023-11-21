@@ -20,19 +20,60 @@ class MovieDBDataSource extends MovieDataSource{
       )
     );
 
+  // Metodo que convertira nuestro json en una lista de peliculas
+  List<Movie> _jsonToMovies(Map<String,dynamic> json){
+  final movieDBResponse = MovieDbResponse.fromJson(json);
+      // Con un maper, maepamos nuestra respuesta a nuestras entidades
+      final List<Movie> movies = movieDBResponse.results
+      .where((movie) => movie.posterPath != 'no-poster') // Aplicamos un filtro, para que traiga puros no poster
+      .map(
+        (e) => MovieMapper.movieDBtoEntity(e) ).toList(); // Mapeamos a nuestras entidades
+
+    return movies;
+  }
+
+
   // Implementamos los metodos de nuestro doman, datasource
   @override
   Future<List<Movie>> getNowPlaying({int page = 1}) async  {
     
-    final response = await dio.get('/movie/now_playing'); // Hacemos nuestro get
-    final movieDBResponse = MovieDbResponse.fromJson(response.data);
-    // Con un maper, maepamos nuestra respuesta a nuestras entidades
-    final List<Movie> movies = movieDBResponse.results
-    .where((movie) => movie.posterPath != 'no-poster') // Aplicamos un filtro, para que traiga puros no poster
-    .map(
-      (e) => MovieMapper.movieDBtoEntity(e) ).toList(); // Mapeamos a nuestras entidades
-
-    return movies;
+    final response = await dio.get('/movie/now_playing'  , 
+      queryParameters : { 
+        'page' : page,
+      }
+    ); // Hacemos nuestro get
+    return _jsonToMovies(response.data); // llamamos a nuestro Cconvertidor de json a lista de entidades
+  }
+  
+  @override
+  Future<List<Movie>> getPopular({int page = 1}) async  {
+    final response = await dio.get('/movie/popular'  , 
+      queryParameters : { 
+        'page' : page,
+      }
+    ); // Hacemos nuestro get
+    return _jsonToMovies(response.data);  // llamamos a nuestro Cconvertidor de json a lista de entidades
+    
+  }
+  
+  @override
+  Future<List<Movie>> getTopReated({int page = 1}) async{
+    final response = await dio.get('/movie/top_rated'  , 
+      queryParameters : { 
+        'page' : page,
+      }
+    ); // Hacemos nuestro get
+    return _jsonToMovies(response.data);  // llamamos a nuestro Cconvertidor de json a lista de entidades
+  }
+  
+  @override
+  Future<List<Movie>> getUpcoming({int page = 1})  async{
+    final response = await dio.get('/movie/upcoming'  , 
+      queryParameters : { 
+        'page' : page,
+      }
+    ); // Hacemos nuestro get
+    return _jsonToMovies(response.data);  // llamamos a nuestro Cconvertidor de json a lista de entidades
   }
 
 }
