@@ -30,6 +30,11 @@ class MovieRepositoryImpl extends MovieRepository{
   Future<List<Movie>> getUpcoming({int page = 1}) {
     return datasource.getUpcoming(page: page); // Mandamos allamar a nuestro repositorio y pasamos la pagina
   }
+  
+  @override
+  Future<Movie> getMovieById(String id) {
+    return datasource.getMovieById(id); // Mandamos allallamar a nuestro repositorio y pasamos el id
+  }
 
 
 }
