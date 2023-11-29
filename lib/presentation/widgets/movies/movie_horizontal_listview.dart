@@ -119,7 +119,7 @@ final Movie movie;
                   }
                   // Envolvemos en un wdget que pueda atender al evento del tap
                   return GestureDetector(
-                    onTap: ()=>context.push('/movie/${movie.id}'),
+                    onTap: ()=>context.push('/home/0/movie/${movie.id}'),
                     child: FadeIn(child: child),
                   );
                   
