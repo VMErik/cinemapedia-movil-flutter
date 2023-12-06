@@ -1,6 +1,13 @@
 // Definimos nuesrra estructura de peliculas
 
+import 'package:isar/isar.dart';
+// Hace referencia al arhico de isar que se generara para interactuar con la BD
+part 'movie.g.dart';
+
+// Es indispensable este decorador para poder generar la entidad en Isar
+@collection
 class Movie {
+  Id? isarId;
   final bool adult;
   final String backdropPath;
   final List<String> genreIds;

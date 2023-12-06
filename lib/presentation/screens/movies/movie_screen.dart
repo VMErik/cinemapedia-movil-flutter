@@ -181,21 +181,46 @@ class _ActorsByMovie extends ConsumerWidget {
 }
 
 
+final isFavoriteProvider = FutureProvider.family.autoDispose((ref, int movieId){
+  // Retornaremos para saber si esta en la base de datos o no
+  final localStorageRepository = ref.watch(localStorageRepositoryProvider);
+  return localStorageRepository.isMovieFavorite(movieId); // Esta accion retornara un booleano
+});
 
 
-class _CustomSliverWidget extends StatelessWidget {
+
+class _CustomSliverWidget extends ConsumerWidget {
   final Movie movie;
 
   const _CustomSliverWidget({required this.movie});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context , WidgetRef ref) {
     final size = MediaQuery.of(context).size;
-
+    // Va a estar escuchando con esta movie id
+    final isFavoriteFuture = ref.watch(isFavoriteProvider(movie.id)); 
     return SliverAppBar(
       backgroundColor: Colors.black,
       expandedHeight: size.height * 0.6,
       foregroundColor: Colors.white,
+      actions : [
+        IconButton(
+          onPressed: () async {
+            // Hacemos la accion en Base de datos local
+            // ref.read(localStorageRepositoryProvider).toggleFavorite(movie);
+            await ref.read(favoriteMoviesProvider.notifier).toggleFavorite(movie);
+            // Invalida el estado del provider, y lo regresa al estado inicial
+            ref.invalidate(isFavoriteProvider(movie.id));
+          },
+          icon: isFavoriteFuture.when(          
+            loading: ()=> const CircularProgressIndicator(strokeWidth: 2,),
+            data: (isFavorite) => isFavorite
+            ? const Icon(Icons.favorite_rounded , color: Colors.red) 
+            : const Icon(Icons.favorite_border) , 
+            error: (_ , __)=> throw UnimplementedError()
+          ),
+        )
+      ] , 
       // title: Text(movie.title),
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -216,42 +241,66 @@ class _CustomSliverWidget extends StatelessWidget {
               },
               ),
           ),
+
+          // Este es el gradiente para el corazon de favoritos
+          const _CustomGradient(
+            alignmentStart: Alignment.topRight,
+             alignmentEnd: Alignment.topLeft, 
+             start: 0.0, 
+             end: 0.2, 
+             colorStart: Colors.black54, 
+             colorEnd: Colors.transparent) ,
           // Este es el gradiente para el nombre de la pelicula
-          const SizedBox.expand(
-            child: DecoratedBox(decoration: BoxDecoration(
-              // Creamos un gradiente
-              gradient: LinearGradient(
-                // Le decimos que comience de arriba a abajo
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                // Le indicamos que empiece desde la mitad de lapantalla hasta el final
-                stops: [0.5,1.0],
-                colors: [
-                  // Establecemos que vaya desde estos colores
-                Colors.transparent, 
-                Colors.black87
-              ])
-            )),
-          ),
+          const _CustomGradient(
+            alignmentStart: Alignment.topCenter,
+             alignmentEnd: Alignment.bottomCenter, 
+             start: 0.5, 
+             end: 1.0, 
+             colorStart: Colors.transparent, 
+             colorEnd: Colors.black87) , 
           // Este es el gradiente para la flecha, para que no se pierda
-          const SizedBox.expand(
-            child: DecoratedBox(decoration: BoxDecoration(
-              // Creamos un gradiente
-              gradient: LinearGradient(
-                // Le decimos que comience de arriba a abajo
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                // Le indicamos que empiece desde la mitad de lapantalla hasta el final
-                stops: [0.7,1.0],
-                colors: [
-                  // Establecemos que vaya desde estos colores
-                Colors.transparent, 
-                Colors.black87
-              ])
-            )),
-          )
+          const _CustomGradient(
+            alignmentStart: Alignment.bottomCenter,
+             alignmentEnd: Alignment.topCenter, 
+             start: 0.7, 
+             end: 1.0, 
+             colorStart: Colors.transparent, 
+             colorEnd: Colors.black87) , 
         ]),
       ),
     );
+  }
+}
+
+
+class _CustomGradient extends StatelessWidget {
+  final Alignment alignmentStart;
+  final Alignment alignmentEnd;
+  final double start;
+  final double end;
+  final Color colorStart;
+  final Color colorEnd;
+
+  const _CustomGradient({ required this.alignmentStart, required this.alignmentEnd, required this.start, required this.end, required this.colorStart, required this.colorEnd});
+
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+            child: DecoratedBox(decoration: BoxDecoration(
+              // Creamos un gradiente
+              gradient: LinearGradient(
+                // Le decimos que comience de arriba a abajo
+                begin: alignmentStart,
+                end: alignmentEnd,
+                // Le indicamos que empiece desde la mitad de lapantalla hasta el final
+                stops: [start,end],
+                colors: [
+                  // Establecemos que vaya desde estos colores
+                colorStart, 
+                colorEnd
+              ])
+            )),
+          );
   }
 }
